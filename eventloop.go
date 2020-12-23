@@ -1,7 +1,5 @@
 package main
 
-import "io"
-
 //print
 //add 2 5
 
@@ -29,10 +27,6 @@ func (l Loop) AwaitFinish() {
 
 }
 
-func parse(input io.Reader) []Command{
-	//TODO: parse input into array of commands
-}
-
-func main(){
+//func main(){
 	//use parser, start loop, post parsed commands in a cycle and await finish
-}
+//}
