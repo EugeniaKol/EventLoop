@@ -4,9 +4,6 @@ import (
 	"sync"
 )
 
-//print
-//add 2 5
-
 type Command interface {
 	Execute(h Handler)
 }
