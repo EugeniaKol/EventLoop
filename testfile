@@ -1,2 +1,9 @@
 add 2 3
 print Hello
+add 27 25
+add 6 14
+print Nice
+add 5 7 9
+add 5 f
+sing
+print Happy New Year!:)

@@ -75,7 +75,6 @@ func (l *Loop) Start() {
 
 func (l *Loop) Post(cmd Command) {
 	l.mq.push(cmd)
-	//cmd.Execute(l)
 }
 
 type CommandFunc func(h Handler)
@@ -98,20 +97,11 @@ func main() {
 
 	l.Start()
 
-	//	for cmd := range parsedCommand {
-	//		l.Post(cmd)
-	//	}
-
 	commands := Parse("testfile")
 
-	for _, e := range commands {
-		l.Post(e)
+	for _, c := range commands {
+		l.Post(c)
 	}
-	// fmt.Println(&arr)
-	// l.Post(&printCmd{msg: "hello"})
-	// l.Post(&addCmd{a: 4, b: 2})
-	// l.Post(&printCmd{msg: "hello2"})
 
 	l.AwaitFinish()
-
 }

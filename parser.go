@@ -28,26 +28,32 @@ func Parse(file string) []Command {
 
 		switch command {
 		case "print":
+			phrase := strings.Join(split[1:], " ")
+
 			fmt.Println("COMMAND: ", command)
-			fmt.Println("ARGS: ", split[1])
-			commands = append(commands, &printCmd{msg: split[1]})
+			fmt.Println("ARGS: ", phrase)
+			commands = append(commands, &printCmd{msg: phrase})
 		case "add":
+			if len(split) != 3 {
+				commands = append(commands, &printCmd{msg: "Wrong number of args for add: " + strconv.Itoa(len(split) - 1)})
+				break
+			}
+
 			fmt.Println("COMMAND: ", command)
 			fmt.Println("ARGS: ", split[1], split[2])
 
 			a, err := strconv.Atoi(split[1])
 			b, err := strconv.Atoi(split[2])
-			commands = append(commands, &addCmd{a: a, b: b})
 
 			if err != nil {
-				fmt.Println(err)
+				commands = append(commands, &printCmd{msg: err.Error()})
+				break
 			}
-
+			commands = append(commands, &addCmd{a: a, b: b})
+		default:
+			commands = append(commands, &printCmd{msg: "Sorry, i cant " + command + " yet :'("})
 		}
 	}
 	return commands
 }
 
-// func main() {
-// 	Parse("testfile")
-// }
