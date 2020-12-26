@@ -1,7 +1,9 @@
 package main
+
 import (
-  "sync"
+	"sync"
 )
+
 //print
 //add 2 5
 
@@ -13,12 +15,11 @@ type Handler interface {
 	Post(cmd Command)
 }
 
-
 type messageQueue struct {
 	sync.Mutex
 
-	data []Command
-	receiveSignal chan struct{}
+	data             []Command
+	receiveSignal    chan struct{}
 	receiveRequested bool
 }
 
@@ -31,17 +32,17 @@ func (mq *messageQueue) push(command Command) {
 		mq.receiveRequested = false
 		mq.receiveSignal <- struct{}{}
 	}
-	
+
 }
 
 func (mq *messageQueue) pull() Command {
 	mq.Lock()
 	defer mq.Unlock()
 
-	if mq.empty(){
+	if mq.empty() {
 		mq.receiveRequested = true
 		mq.Unlock()
-		<- mq.receiveSignal
+		<-mq.receiveSignal
 		mq.Lock()
 	}
 
@@ -51,20 +52,19 @@ func (mq *messageQueue) pull() Command {
 	return res
 }
 
-func (mq *messageQueue) empty() bool{
+func (mq *messageQueue) empty() bool {
 	return len(mq.data) == 0
 }
-
 
 type Loop struct {
 	mq *messageQueue
 
-	stopSignal chan struct{}
+	stopSignal  chan struct{}
 	stopRequest bool
 }
 
-func(l *Loop) Start(){
-	l.mq = &messageQueue{ receiveSignal: make(chan struct{})}
+func (l *Loop) Start() {
+	l.mq = &messageQueue{receiveSignal: make(chan struct{})}
 	l.stopSignal = make(chan struct{})
 	go func() {
 		for !l.stopRequest || !l.mq.empty() {
@@ -78,10 +78,10 @@ func(l *Loop) Start(){
 
 func (l *Loop) Post(cmd Command) {
 	l.mq.push(cmd)
-//cmd.Execute(l)
+	//cmd.Execute(l)
 }
 
-type CommandFunc func (h Handler)
+type CommandFunc func(h Handler)
 
 func (cf CommandFunc) Execute(h Handler) {
 	cf(h)
@@ -91,8 +91,8 @@ func (l *Loop) AwaitFinish() {
 	l.Post(CommandFunc(func(h Handler) {
 		l.stopRequest = true
 	}))
-	
-	<- l.stopSignal
+
+	<-l.stopSignal
 }
 
 func main() {
@@ -101,16 +101,19 @@ func main() {
 
 	l.Start()
 
+	//	for cmd := range parsedCommand {
+	//		l.Post(cmd)
+	//	}
 
-//	for cmd := range parsedCommand {
-//		l.Post(cmd)
-//	}
+	commands := Parse("testfile")
 
-
-
-	l.Post(&printCmd{msg: "hello"})
-	l.Post(&addCmd{a:4, b:2})
-	l.Post(&printCmd{msg: "hello2"})
+	for _, e := range commands {
+		l.Post(e)
+	}
+	// fmt.Println(&arr)
+	// l.Post(&printCmd{msg: "hello"})
+	// l.Post(&addCmd{a: 4, b: 2})
+	// l.Post(&printCmd{msg: "hello2"})
 
 	l.AwaitFinish()
 

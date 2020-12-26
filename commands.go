@@ -20,7 +20,6 @@ func (pCmd *printCmd) Execute(h Handler) {
 	fmt.Println(pCmd.msg)
 }
 
-
 //execute addition
 func (addCmd *addCmd) Execute(h Handler) {
 	res := addCmd.a + addCmd.b
