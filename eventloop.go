@@ -54,6 +54,8 @@ func (mq *messageQueue) pull() Command {
 }
 
 func (mq *messageQueue) empty() bool {
+	mq.Lock()
+	defer mq.Unlock()
 	return len(mq.data) == 0
 }
 
