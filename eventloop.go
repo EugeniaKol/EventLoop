@@ -1,11 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"sync"
 )
 
 type Command interface {
 	Execute(h Handler)
+	IsChild() bool
 }
 
 type Handler interface {
@@ -18,6 +20,8 @@ type messageQueue struct {
 	data             []Command
 	receiveSignal    chan struct{}
 	receiveRequested bool
+
+	notifyAwait int
 }
 
 func (mq *messageQueue) push(command Command) {
@@ -53,6 +57,7 @@ func (mq *messageQueue) empty() bool {
 	return len(mq.data) == 0
 }
 
+
 type Loop struct {
 	mq *messageQueue
 
@@ -64,20 +69,28 @@ func (l *Loop) Start() {
 	l.mq = &messageQueue{receiveSignal: make(chan struct{})}
 	l.stopSignal = make(chan struct{})
 	go func() {
-		for !l.stopRequest || !l.mq.empty() {
+		for !l.stopRequest || !l.mq.empty(){
 			cmd := l.mq.pull()
 			cmd.Execute(l)
-		}
+			}
 		l.stopSignal <- struct{}{}
 	}()
 
 }
 
 func (l *Loop) Post(cmd Command) {
+	if l.stopRequest{
+		if cmd.IsChild() {l.mq.push(cmd)
+		}else {return}
+	}
 	l.mq.push(cmd)
 }
 
 type CommandFunc func(h Handler)
+
+func (cf CommandFunc) IsChild() bool {
+	return false
+}
 
 func (cf CommandFunc) Execute(h Handler) {
 	cf(h)
@@ -104,4 +117,9 @@ func main() {
 	}
 
 	l.AwaitFinish()
+
+	fmt.Println("Trying to add after finish")
+	l.Post(commands[3])
+	l.Post(commands[2])
+	l.Post(commands[2])
 }
